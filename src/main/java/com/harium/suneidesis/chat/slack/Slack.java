@@ -15,11 +15,14 @@ import com.slack.api.bolt.socket_mode.SocketModeApp;
 import com.slack.api.methods.AsyncMethodsClient;
 import com.slack.api.methods.SlackApiException;
 import com.slack.api.methods.request.chat.ChatPostMessageRequest;
+import com.slack.api.methods.request.files.FilesUploadRequest;
 import com.slack.api.model.event.MessageEvent;
 import com.slack.api.socket_mode.SocketModeClient;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Slack implements BoxHandler {
@@ -84,7 +87,6 @@ public class Slack implements BoxHandler {
                 InputContext context = new InputContext();
                 context.setSentence(event.getText());
                 context.getProperties().put(InputContext.USER_ID, event.getUser());
-                context.getProperties().put(InputContext.USER_USERNAME, event.getUser());
                 context.getProperties().put(InputContext.CHANNEL_ID, eventContext.getChannelId());
                 context.getProperties().put(InputContext.CHANNEL_NAME, event.getChannel());
 
@@ -113,7 +115,21 @@ public class Slack implements BoxHandler {
 
         @Override
         public void produceFile(String path, String description) {
-            throw new RuntimeException("Not implemented yet.");
+            File file = new File(path);
+            if (!file.exists()) {
+                System.err.println("File not found: " + path);
+                return;
+            }
+
+            AsyncMethodsClient methods = app.slack().methodsAsync(botToken);
+            String channel = eventContext.getChannelId();
+            FilesUploadRequest request = FilesUploadRequest.builder()
+                    .title(description)
+                    .channels(Collections.singletonList(channel))
+                    .file(file)
+                    .build();
+
+            methods.filesUpload(request);
         }
     }
 }
