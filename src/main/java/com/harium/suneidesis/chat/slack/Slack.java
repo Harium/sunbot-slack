@@ -12,7 +12,9 @@ import com.slack.api.bolt.context.builtin.EventContext;
 import com.slack.api.bolt.handler.BoltEventHandler;
 import com.slack.api.bolt.response.Response;
 import com.slack.api.bolt.socket_mode.SocketModeApp;
+import com.slack.api.methods.AsyncMethodsClient;
 import com.slack.api.methods.SlackApiException;
+import com.slack.api.methods.request.chat.ChatPostMessageRequest;
 import com.slack.api.model.event.MessageEvent;
 import com.slack.api.socket_mode.SocketModeClient;
 
@@ -48,9 +50,19 @@ public class Slack implements BoxHandler {
         parsers.add(parser);
     }
 
+    /**
+     * @param channel - channel name or channelID
+     * @param message - the text to be sent in the channel
+     */
     @Override
     public void sendMessage(String channel, String message) {
-        throw new RuntimeException("Not implemented yet.");
+        AsyncMethodsClient methods = app.slack().methodsAsync(botToken);
+        ChatPostMessageRequest request = ChatPostMessageRequest.builder()
+                .channel(channel) // Use a channelID is preferable
+                .text(message)
+                .build();
+
+        methods.chatPostMessage(request);
     }
 
     private BoltEventHandler<MessageEvent> initHandler() {
