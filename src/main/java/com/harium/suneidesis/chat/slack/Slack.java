@@ -1,5 +1,6 @@
 package com.harium.suneidesis.chat.slack;
 
+import com.harium.suneidesis.chat.Interceptor;
 import com.harium.suneidesis.chat.Parser;
 import com.harium.suneidesis.chat.box.BoxHandler;
 import com.harium.suneidesis.chat.input.InputContext;
@@ -33,6 +34,7 @@ public class Slack implements BoxHandler {
     private App app;
 
     private List<Parser> parsers = new ArrayList<>();
+    private List<Interceptor> interceptors = new ArrayList<>();
 
     public Slack(String botToken, String appToken) {
         this.botToken = botToken;
@@ -74,8 +76,12 @@ public class Slack implements BoxHandler {
             public Response apply(EventsApiPayload<MessageEvent> eventsApiPayload, EventContext eventContext) {
                 InputContext inputContext = buildContext(eventsApiPayload.getEvent(), eventContext);
 
+                Output output = new SlackOutput(eventContext);
+                for (Interceptor interceptor : interceptors) {
+                    interceptor.intercept(inputContext, output);
+                }
                 for (Parser parser : parsers) {
-                    if (parser.parse(inputContext, new SlackOutput(eventContext))) {
+                    if (parser.parse(inputContext, output)) {
                         break;
                     }
                 }
