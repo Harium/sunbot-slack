@@ -1,8 +1,7 @@
 package com.harium.suneidesis.chat.slack;
 
-import com.harium.suneidesis.chat.Interceptor;
 import com.harium.suneidesis.chat.Parser;
-import com.harium.suneidesis.chat.box.BoxHandler;
+import com.harium.suneidesis.chat.box.BaseChatBox;
 import com.harium.suneidesis.chat.input.InputContext;
 import com.harium.suneidesis.chat.output.Output;
 import com.harium.suneidesis.chat.output.OutputContext;
@@ -22,32 +21,33 @@ import com.slack.api.socket_mode.SocketModeClient;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
-public class Slack implements BoxHandler {
+public class Slack extends BaseChatBox {
 
     private String botToken;
     private String appToken;
+    private Output output;
 
     private App app;
-
-    private List<Parser> parsers = new ArrayList<>();
-    private List<Interceptor> interceptors = new ArrayList<>();
 
     public Slack(String botToken, String appToken) {
         this.botToken = botToken;
         this.appToken = appToken;
     }
 
-    public void connect() throws Exception {
+    @Override
+    public void init() {
         AppConfig appConfig = AppConfig.builder().singleTeamBotToken(botToken).build();
         app = new App(appConfig);
 
         // Read all message events
         app.event(MessageEvent.class, initHandler());
-        new SocketModeApp(appToken, SocketModeClient.Backend.JavaWebSocket, app).startAsync();
+        try {
+            new SocketModeApp(appToken, SocketModeClient.Backend.JavaWebSocket, app).startAsync();
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
     }
 
     @Override
@@ -76,14 +76,11 @@ public class Slack implements BoxHandler {
             public Response apply(EventsApiPayload<MessageEvent> eventsApiPayload, EventContext eventContext) {
                 InputContext inputContext = buildContext(eventsApiPayload.getEvent(), eventContext);
 
-                Output output = new SlackOutput(eventContext);
-                for (Interceptor interceptor : interceptors) {
-                    interceptor.intercept(inputContext, output);
-                }
-                for (Parser parser : parsers) {
-                    if (parser.parse(inputContext, output)) {
-                        break;
-                    }
+                if (output == null) {
+                    Output output = new SlackOutput(eventContext);
+                    parseInput(inputContext, output);
+                } else {
+                    parseInput(inputContext, output);
                 }
 
                 return eventContext.ack();
@@ -137,5 +134,19 @@ public class Slack implements BoxHandler {
 
             methods.filesUpload(request);
         }
+    }
+
+    @Override
+    public void setOutput(Output output) {
+        this.output = output;
+    }
+
+    @Override
+    public Output getOutput() {
+        return output;
+    }
+
+    public App getApp() {
+        return app;
     }
 }

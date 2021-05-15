@@ -19,6 +19,6 @@ Get both Bot and App tokens
     String appToken = "xapp-654321-MY_TOKEN";
 
     Slack slack = new Slack(botToken, appToken);
-    slack.connect();
+    slack.init();
     slack.addParser(bot);
 ```
