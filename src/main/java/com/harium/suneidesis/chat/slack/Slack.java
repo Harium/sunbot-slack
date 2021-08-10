@@ -3,6 +3,7 @@ package com.harium.suneidesis.chat.slack;
 import com.harium.suneidesis.chat.Parser;
 import com.harium.suneidesis.chat.box.BaseChatBox;
 import com.harium.suneidesis.chat.input.InputContext;
+import com.harium.suneidesis.chat.output.BaseOutput;
 import com.harium.suneidesis.chat.output.Output;
 import com.harium.suneidesis.chat.output.OutputContext;
 import com.slack.api.app_backend.events.payload.EventsApiPayload;
@@ -98,7 +99,7 @@ public class Slack extends BaseChatBox {
         };
     }
 
-    private class SlackOutput implements Output {
+    private class SlackOutput extends BaseOutput {
         private final EventContext eventContext;
 
         public SlackOutput(EventContext eventContext) {
@@ -130,6 +131,19 @@ public class Slack extends BaseChatBox {
                     .title(description)
                     .channels(Collections.singletonList(channel))
                     .file(file)
+                    .build();
+
+            methods.filesUpload(request);
+        }
+
+        @Override
+        public void produceFile(byte[] data, String description) {
+            AsyncMethodsClient methods = app.slack().methodsAsync(botToken);
+            String channel = eventContext.getChannelId();
+            FilesUploadRequest request = FilesUploadRequest.builder()
+                    .title(description)
+                    .channels(Collections.singletonList(channel))
+                    .fileData(data)
                     .build();
 
             methods.filesUpload(request);

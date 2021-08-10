@@ -3,7 +3,7 @@ Plugin to turn your Suneidesis Chatbot into a Slack Bot
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.harium.suneidesis.sunbot/slack/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.harium.suneidesis.sunbot/slack/)
 
-## How to setup your app
+## How to setup your Slack App
 - Enable Socket Mode
 - Add Event Subscriptions: message.channels and message.im
 - Add Oauth Permissions: chat:write and im:read
