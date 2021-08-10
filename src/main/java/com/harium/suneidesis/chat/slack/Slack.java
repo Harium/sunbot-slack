@@ -28,7 +28,6 @@ public class Slack extends BaseChatBox {
 
     private String botToken;
     private String appToken;
-    private Output output;
 
     private App app;
 
@@ -79,9 +78,9 @@ public class Slack extends BaseChatBox {
 
                 if (output == null) {
                     Output output = new SlackOutput(eventContext);
-                    parseInput(inputContext, output);
+                    parse(inputContext, output);
                 } else {
-                    parseInput(inputContext, output);
+                    parse(inputContext, output);
                 }
 
                 return eventContext.ack();
@@ -148,16 +147,6 @@ public class Slack extends BaseChatBox {
 
             methods.filesUpload(request);
         }
-    }
-
-    @Override
-    public void setOutput(Output output) {
-        this.output = output;
-    }
-
-    @Override
-    public Output getOutput() {
-        return output;
     }
 
     public App getApp() {
