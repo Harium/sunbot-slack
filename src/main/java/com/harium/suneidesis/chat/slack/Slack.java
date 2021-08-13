@@ -14,17 +14,17 @@ import com.slack.api.bolt.handler.BoltEventHandler;
 import com.slack.api.bolt.response.Response;
 import com.slack.api.bolt.socket_mode.SocketModeApp;
 import com.slack.api.methods.AsyncMethodsClient;
-import com.slack.api.methods.SlackApiException;
 import com.slack.api.methods.request.chat.ChatPostMessageRequest;
 import com.slack.api.methods.request.files.FilesUploadRequest;
 import com.slack.api.model.event.MessageEvent;
 import com.slack.api.socket_mode.SocketModeClient;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 
 public class Slack extends BaseChatBox {
+
+    private static final String THREAD_ID = "thread_ts";
 
     private String botToken;
     private String appToken;
@@ -92,6 +92,7 @@ public class Slack extends BaseChatBox {
                 context.getProperties().put(InputContext.USER_ID, event.getUser());
                 context.getProperties().put(InputContext.CHANNEL_ID, eventContext.getChannelId());
                 context.getProperties().put(InputContext.CHANNEL_NAME, event.getChannel());
+                context.getProperties().put(THREAD_ID, event.getEventTs());
 
                 return context;
             }
@@ -107,13 +108,14 @@ public class Slack extends BaseChatBox {
 
         @Override
         public void print(String sentence, OutputContext context) {
-            try {
-                eventContext.say(sentence);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (SlackApiException e) {
-                e.printStackTrace();
-            }
+            String channel = eventContext.getChannelId();
+            AsyncMethodsClient methods = app.slack().methodsAsync(botToken);
+            ChatPostMessageRequest request = ChatPostMessageRequest.builder()
+                    .channel(channel) // Use a channelID is preferable
+                    .text(sentence)
+                    .build();
+
+            methods.chatPostMessage(request);
         }
 
         @Override
