@@ -6,7 +6,7 @@
 
     <groupId>com.harium.suneidesis.sunbot</groupId>
     <artifactId>slack</artifactId>
-    <version>1.6.5</version>
+    <version>1.6.6</version>
     <packaging>jar</packaging>
     <name>Sunbot Slack</name>
     <description>A plugin to turn your Suneidesis Chatbot into a Slack Bot</description>
