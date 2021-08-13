@@ -74,14 +74,17 @@ public class Slack extends BaseChatBox {
         return new BoltEventHandler<MessageEvent>() {
             @Override
             public Response apply(EventsApiPayload<MessageEvent> eventsApiPayload, EventContext eventContext) {
-                InputContext inputContext = buildContext(eventsApiPayload.getEvent(), eventContext);
 
-                if (output == null) {
-                    Output output = new SlackOutput(eventContext);
-                    parse(inputContext, output);
-                } else {
-                    parse(inputContext, output);
-                }
+                app.executorService().execute(() -> {
+                    InputContext inputContext = buildContext(eventsApiPayload.getEvent(), eventContext);
+
+                    if (output == null) {
+                        Output output = new SlackOutput(eventContext);
+                        parse(inputContext, output);
+                    } else {
+                        parse(inputContext, output);
+                    }
+                });
 
                 return eventContext.ack();
             }
